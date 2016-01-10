@@ -136,6 +136,12 @@ if (is_array($config['dhcpd'][$if])) {
 	} else {
 		$dhcpdconf = &$config['dhcpd'][$if];
 	}
+
+	if (!is_array($config['dhcpd'][$if]['staticmap'])) {
+		$dhcpdconf['staticmap'] = array();
+	}
+
+	$a_maps = &$config['dhcpd'][$if]['staticmap'];
 }
 if (is_array($dhcpdconf)) {
 	// Global Options
@@ -156,12 +162,6 @@ if (is_array($dhcpdconf)) {
 		}
 
 		$pconfig['dhcpleaseinlocaltime'] = $dhcpleaseinlocaltime;
-
-		if (!is_array($dhcpdconf['staticmap'])) {
-			$dhcpdconf['staticmap'] = array();
-		}
-
-		$a_maps = &$dhcpdconf['staticmap'];
 	} else {
 		// Options that exist only in pools
 		$pconfig['descr'] = $dhcpdconf['descr'];
@@ -403,20 +403,17 @@ if (isset($_POST['submit'])) {
 			$subnet_start = ip2ulong(long2ip32(ip2long($ifcfgip) & gen_subnet_mask_long($ifcfgsn)));
 			$subnet_end = ip2ulong(long2ip32(ip2long($ifcfgip) | (~gen_subnet_mask_long($ifcfgsn))));
 
-			if ((ip2ulong($_POST['range_from']) < $subnet_start) || (ip2ulong($_POST['range_from']) > $subnet_end) ||
-			    (ip2ulong($_POST['range_to']) < $subnet_start) || (ip2ulong($_POST['range_to']) > $subnet_end)) {
-				$input_errors[] = gettext("The specified range lies outside of the current subnet.");
-			}
-
 			if (ip2ulong($_POST['range_from']) > ip2ulong($_POST['range_to'])) {
 				$input_errors[] = gettext("The range is invalid (first element higher than second element).");
 			}
 
-			if (is_numeric($pool) || ($act == "newpool")) {
-				$rfrom = $config['dhcpd'][$if]['range']['from'];
-				$rto = $config['dhcpd'][$if]['range']['to'];
+			if (ip2ulong($_POST['range_from']) < $subnet_start || ip2ulong($_POST['range_to']) > $subnet_end) {
+				$input_errors[] = gettext("The specified range lies outside of the current subnet.");
+			}
 
-				if (is_inrange_v4($_POST['range_from'], $rfrom, $rto) || is_inrange_v4($_POST['range_to'], $rfrom, $rto)) {
+			if (is_numeric($pool) || ($act == "newpool")) {
+				if (!((ip2ulong($_POST['range_from']) > ip2ulong($config['dhcpd'][$if]['range']['to'])) ||
+				      (ip2ulong($_POST['range_to']) < ip2ulong($config['dhcpd'][$if]['range']['from'])))) {
 					$input_errors[] = gettext("The specified range must not be within the DHCP range for this interface.");
 				}
 			}
@@ -426,8 +423,8 @@ if (isset($_POST['submit'])) {
 					continue;
 				}
 
-				if (is_inrange_v4($_POST['range_from'], $p['range']['from'], $p['range']['to']) ||
-				    is_inrange_v4($_POST['range_to'], $p['range']['from'], $p['range']['to'])) {
+				if (!((ip2ulong($_POST['range_from']) > ip2ulong($p['range']['to'])) ||
+				      (ip2ulong($_POST['range_to']) < ip2ulong($p['range']['from'])))) {
 					$input_errors[] = gettext("The specified range must not be within the range configured on a DHCP pool for this interface.");
 					break;
 				}
@@ -445,8 +442,8 @@ if (isset($_POST['submit'])) {
 					if (empty($map['ipaddr'])) {
 						continue;
 					}
-					if ((ip2ulong($map['ipaddr']) > $dynsubnet_start) &&
-					    (ip2ulong($map['ipaddr']) < $dynsubnet_end)) {
+					if ((ip2ulong($map['ipaddr']) >= $dynsubnet_start) &&
+					    (ip2ulong($map['ipaddr']) <= $dynsubnet_end)) {
 						$input_errors[] = sprintf(gettext("The DHCP range cannot overlap any static DHCP mappings."));
 						break;
 					}
@@ -695,7 +692,6 @@ function build_pooltable() {
 	return($pooltbl);
 }
 
-$closehead = false;
 $pgtitle = array(gettext("Services"), gettext("DHCP Server"));
 $shortcut_section = "dhcp";
 
@@ -951,7 +947,7 @@ if (!is_numeric($pool) && !($act == "newpool")) {
 		'Static ARP',
 		'Enable Static ARP entries',
 		$pconfig['staticarp']
-	))->setHelp('This option persists even if DHCP server is disabled. Only the machines listed below will be able to communicate with the firewall on this NIC.');
+	))->setHelp('This option persists even if DHCP server is disabled. Only the machines listed below will be able to communicate with the firewall on this interface.');
 
 	$section->addInput(new Form_Checkbox(
 		'dhcpleaseinlocaltime',
@@ -991,7 +987,7 @@ $section->addInput(new Form_Checkbox(
 $section->addInput(new Form_Input(
 	'ddnsdomain',
 	'DDNS Domain',
-	'number',
+	'text',
 	$pconfig['ddnsdomain']
 ))->setHelp('Leave blank to disable dynamic DNS registration.' . '<br />' .
 			'Enter the dynamic DNS domain which will be used to register client names in the DNS server.');

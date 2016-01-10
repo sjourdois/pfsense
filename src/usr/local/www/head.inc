@@ -61,9 +61,9 @@ header('Content-Type: text/html; charset=utf-8');
 $pagetitle = gentitle($pgtitle);
 
 if (isset($config['system']['webgui']['pagenamefirst'])) {
-	$tabtitle = $pagetitle . " - " . $config['system']['hostname'] . "." . $config['system']['domain'];
+	$tabtitle = $pagetitle . " - " . htmlspecialchars($config['system']['hostname'] . "." . $config['system']['domain']);
 } else {
-	$tabtitle = $config['system']['hostname'] . "." . $config['system']['domain'] . " - " . $pagetitle;
+	$tabtitle = htmlspecialchars($config['system']['hostname'] . "." . $config['system']['domain']) . " - " . $pagetitle;
 }
 
 $cssfile = "/bootstrap/css/pfSense.css";
@@ -488,7 +488,7 @@ echo '<li>'. get_shortcut_log_link($shortcut_section, false). '</li>';
 ?>
 	<?php if (!$g['disablehelpicon']): ?>
 		<li>
-			<a href="<?=$helpurl?>" title="<?=gettext("Help for items on this page")?>" class="help-icon">
+			<a href="<?=$helpurl?>" target="_blank" title="<?=gettext("Help for items on this page")?>" class="help-icon">
 				<i class="fa fa-question-circle"></i>
 			</a>
 		</li>

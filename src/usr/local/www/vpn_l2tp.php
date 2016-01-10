@@ -115,6 +115,18 @@ if ($_POST) {
 			$input_errors[] = gettext("A valid RADIUS server address must be specified.");
 		}
 
+		if ($_POST['secret'] != $_POST['secret_confirm']) {
+			$input_errors[] = gettext("Secret and confirmation must match");
+		}
+
+		if ($_POST['radiussecret'] != $_POST['radiussecret_confirm']) {
+			$input_errors[] = gettext("Secret and confirmation must match");
+		}
+
+		if (!is_numericint($_POST['n_l2tp_units']) || $_POST['n_l2tp_units'] > 255) {
+			$input_errors[] = gettext("Number of L2TP users must be between 1 and 255");
+		}
+
 		/* if this is an AJAX caller then handle via JSON */
 		if (isAjax() && is_array($input_errors)) {
 			input_errors2Ajax($input_errors);
@@ -150,8 +162,14 @@ if ($_POST) {
 		$l2tpcfg['interface'] = $_POST['interface'];
 		$l2tpcfg['n_l2tp_units'] = $_POST['n_l2tp_units'];
 		$l2tpcfg['radius']['server'] = $_POST['radiusserver'];
-		$l2tpcfg['radius']['secret'] = $_POST['radiussecret'];
-		$l2tpcfg['secret'] = $_POST['secret'];
+		if ($_POST['radiussecret'] != DMYPWD) {
+			$l2tpcfg['radius']['secret'] = $_POST['radiussecret'];
+		}
+
+		if ($_POST['secret'] != DMYPWD) {
+			$l2tpcfg['secret'] = $_POST['secret'];
+		}
+
 		$l2tpcfg['paporchap'] = $_POST['paporchap'];
 
 
@@ -268,15 +286,14 @@ $section->addInput(new Form_IpAddress(
 ))->addMask(l2tp_subnet, $pconfig['l2tp_subnet'])
   ->setHelp('Specify the starting address for the client IP address subnet.');
 
-$section->addInput(new Form_Input(
+$section->addInput(new Form_Select(
 	'n_l2tp_units',
 	'Number of L2TP users',
-	'number',
 	$pconfig['n_l2tp_units'],
-	['min' => 0, 'max' => 255]
+	array_combine(range(1, 255, 1), range(1, 255, 1))
 ));
 
-$section->addInput(new Form_Input(
+$section->addPassword(new Form_Input(
 	'secret',
 	'Secret',
 	'password',
@@ -333,7 +350,7 @@ $section->addInput(new Form_IpAddress(
 	$pconfig['radiusserver']
 ))->setHelp('Enter the IP address of the RADIUS server.');
 
-$section->addInput(new Form_Input(
+$section->addPassword(new Form_Input(
 	'radiussecret',
 	'Secret',
 	'password',
@@ -351,7 +368,7 @@ $form->add($section);
 
 print($form);
 
-print_info_box(gettext("Don't forget to add a firewall rule to permit traffic from L2TP clients!"), info);
+print_info_box(gettext("Don't forget to add a firewall rule to permit traffic from L2TP clients!"), 'info');
 ?>
 
 <script type="text/javascript">

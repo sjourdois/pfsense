@@ -464,7 +464,6 @@ function build_cert_table() {
 	return($certhtml);
 }
 
-$closehead = false;
 include("head.inc");
 
 if ($input_errors) {
@@ -494,6 +493,7 @@ if (!($act == "new" || $act == "edit" || $input_errors)) {
 				<th><?=gettext("Full name")?></th>
 				<th><?=gettext("Disabled")?></th>
 				<th><?=gettext("Groups")?></th>
+				<th>&nbsp;</th>
 			</tr>
 		</thead>
 		<tbody>
@@ -540,15 +540,16 @@ foreach ($a_user as $i => $userent):
 		<?=gettext("Delete")?>
 	</button>
 </nav>
+</form>
 
-<div id="infoblock">
+<div class="infoblock">
 	<?=print_info_box(gettext("Additional users can be added here. User permissions for accessing " .
 	"the webConfigurator can be assigned directly or inherited from group memberships. " .
 	"An icon that appears grey indicates that it is a system defined object. " .
 	"Some system object properties can be modified but they cannot be deleted.") .
 	'<br /><br />' .
 	gettext("Accounts added here are also used for other parts of the system " .
-	"such as OpenVPN, IPsec, and Captive Portal."), info)?>
+	"such as OpenVPN, IPsec, and Captive Portal."), 'info')?>
 </div>
 
 <?php
@@ -918,5 +919,5 @@ events.push(function() {
 //]]>
 </script>
 <?php
-
 include('foot.inc');
+?>

@@ -259,8 +259,8 @@ if (is_subsystem_dirty('staticroutes')) {
 
 $tab_array = array();
 $tab_array[0] = array(gettext("Gateways"), true, "system_gateways.php");
-$tab_array[1] = array(gettext("Routes"), false, "system_routes.php");
-$tab_array[2] = array(gettext("Groups"), false, "system_gateway_groups.php");
+$tab_array[1] = array(gettext("Static Routes"), false, "system_routes.php");
+$tab_array[2] = array(gettext("Gateway Groups"), false, "system_gateway_groups.php");
 display_top_tabs($tab_array);
 
 ?>
@@ -296,7 +296,7 @@ foreach ($a_gateways as $i => $gateway):
 	<tr<?=($icon != 'fa-check-circle-o')? ' class="disabled"' : ''?>>
 		<td title="<?=$title?>"><i class="fa <?=$icon?>"></i></td>
 		<td>
-			<?=$gateway['name']?>
+			<?=htmlspecialchars($gateway['name'])?>
 <?php
 			if (isset($gateway['defaultgw'])) {
 				echo " <strong>(default)</strong>";
@@ -307,7 +307,7 @@ foreach ($a_gateways as $i => $gateway):
 			<?=htmlspecialchars(convert_friendly_interface_to_friendly_descr($gateway['friendlyiface']))?>
 		</td>
 		<td>
-			<?=$gateway['gateway']?>
+			<?=htmlspecialchars($gateway['gateway'])?>
 		</td>
 		<td>
 			<?=htmlspecialchars($gateway['monitor'])?>
@@ -319,7 +319,7 @@ foreach ($a_gateways as $i => $gateway):
 			<a href="system_gateways_edit.php?id=<?=$i?>" class="fa fa-pencil" title="<?=gettext('Edit');?>"></a>
 			<a href="system_gateways_edit.php?dup=<?=$i?>" class="fa fa-clone" title="<?=gettext('Copy')?>"></a>
 
-<? if (is_numeric($gateway['attribute'])): ?>
+<?php if (is_numeric($gateway['attribute'])): ?>
 	<?php if (isset($gateway['disabled'])) {
 	?>
 			<a href="?act=toggle&amp;id=<?=$i?>" class="fa fa-check-square-o" title="<?=gettext('Enable')?>"></a>
@@ -330,10 +330,10 @@ foreach ($a_gateways as $i => $gateway):
 	?>
 			<a href="system_gateways.php?act=del&amp;id=<?=$i?>" class="fa fa-trash" title="<?=gettext('Delete')?>"></a>
 
-<? endif?>
+<?php endif; ?>
 		</td>
 	</tr>
-<? endforeach?>
+<?php endforeach; ?>
 </tbody>
 </table>
 

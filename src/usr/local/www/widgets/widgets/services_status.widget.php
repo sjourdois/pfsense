@@ -116,7 +116,7 @@ if (count($services) > 0) {
 <?php
 	}
 } else {
-	echo "<tr><td colspan=\"3\" align=\"center\">" . gettext("No services found") . " . </td></tr>\n";
+	echo "<tr><td colspan=\"3\" class=\"text-center\">" . gettext("No services found") . " . </td></tr>\n";
 }
 ?>
 </tbody>
@@ -130,9 +130,15 @@ if (count($services) > 0) {
 		<label for="inputPassword3" class="col-sm-3 control-label">Hidden services</label>
 		<div class="col-sm-6">
 			<select multiple id="servicestatusfilter" name="servicestatusfilter[]" class="form-control">
-			<?php foreach ($services as $service): ?>
+			<?php
+				foreach ($services as $service): 
+					if (!empty(trim($service['name'])) || is_numeric($service['name'])) {
+			?>
 				<option <?=(in_array($service['name'], $skipservices)?'selected':'')?>><?=$service['name']?></option>
-			<?php endforeach; ?>
+			<?php
+					}
+				endforeach;
+			?>
 			</select>
 		</div>
 	</div>

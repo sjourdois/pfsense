@@ -63,11 +63,6 @@
 require_once("guiconfig.inc");
 require_once("pkg-utils.inc");
 
-function gentitle_pkg($pgname) {
-	global $config;
-	return $config['system']['hostname'] . "." . $config['system']['domain'] . " - " . $pgname;
-}
-
 function domTT_title($title_msg) {
 	print "onmouseout=\"this.style.color = ''; domTT_mouseout(this, event);\" onmouseover=\"domTT_activate(this, event, 'content', '".gettext($title_msg)."', 'trail', true, 'delay', 0, 'fade', 'both', 'fadeMax', 93, 'styleClass', 'niceTitle');\"";
 }
@@ -183,9 +178,9 @@ if ($pkg['custom_php_command_before_form'] != "") {
 
 // Breadcrumb
 if ($pkg['title'] != "") {
-	if (!$only_edit) {
- 		$pkg['title'] = $pkg['title'] . '/Edit';
-	}
+	/*if (!$only_edit) {						// Is any package still making use of this?? Is this something that is still wanted, considering the breadcrumb policy https://redmine.pfsense.org/issues/5527
+ 		$pkg['title'] = $pkg['title'] . '/Edit';		// If this needs to live on, then it has to be moved to run AFTER "foreach ($pkg['tabs']['tab'] as $tab)"-loop. This due to $pgtitle[] = $tab['text']; 
+	}*/
 	if (strpos($pkg['title'], '/')) {
 		$title = explode('/', $pkg['title']);
 
@@ -199,7 +194,58 @@ if ($pkg['title'] != "") {
 	$pgtitle = array(gettext("Package"), gettext("Editor"));
 }
 
+if ($pkg['tabs'] != "") {
+	$tab_array = array();
+	foreach ($pkg['tabs']['tab'] as $tab) {
+		if ($tab['tab_level']) {
+			$tab_level = $tab['tab_level'];
+		} else {
+			$tab_level = 1;
+		}
+		if (isset($tab['active'])) {
+			$active = true;
+			$pgtitle[] = $tab['text'];
+		} else {
+			$active = false;
+		}
+		if (isset($tab['no_drop_down'])) {
+			$no_drop_down = true;
+		}
+		$urltmp = "";
+		if ($tab['url'] != "") {
+			$urltmp = $tab['url'];
+		}
+		if ($tab['xml'] != "") {
+			$urltmp = "pkg_edit.php?xml=" . $tab['xml'];
+		}
+
+		$addresswithport = getenv("HTTP_HOST");
+		$colonpos = strpos($addresswithport, ":");
+		if ($colonpos !== False) {
+			//my url is actually just the IP address of the pfsense box
+			$myurl = substr($addresswithport, 0, $colonpos);
+		} else {
+			$myurl = $addresswithport;
+		}
+		// eval url so that above $myurl item can be processed if need be.
+		$url = str_replace('$myurl', $myurl, $urltmp);
+
+		$tab_array[$tab_level][] = array(
+			$tab['text'],
+			$active,
+			$url
+		);
+	}
+
+	ksort($tab_array);
+}
+
 include("head.inc");
+if (isset($tab_array)) {
+	foreach ($tab_array as $tabid => $tab) {
+		display_top_tabs($tab); //, $no_drop_down, $tabid);
+	}
+}
 
 ?>
 
@@ -269,55 +315,6 @@ if ($savemsg) {
 
 <form action="pkg.php" name="pkgform" method="get">
 	<input type='hidden' name='xml' value='<?=$_REQUEST['xml']?>' />
-<?php
-	if ($pkg['tabs'] != "") {
-		$tab_array = array();
-		foreach ($pkg['tabs']['tab'] as $tab) {
-			if ($tab['tab_level']) {
-				$tab_level = $tab['tab_level'];
-			} else {
-				$tab_level = 1;
-			}
-			if (isset($tab['active'])) {
-				$active = true;
-			} else {
-				$active = false;
-			}
-			if (isset($tab['no_drop_down'])) {
-				$no_drop_down = true;
-			}
-			$urltmp = "";
-			if ($tab['url'] != "") {
-				$urltmp = $tab['url'];
-			}
-			if ($tab['xml'] != "") {
-				$urltmp = "pkg_edit.php?xml=" . $tab['xml'];
-			}
-
-			$addresswithport = getenv("HTTP_HOST");
-			$colonpos = strpos($addresswithport, ":");
-			if ($colonpos !== False) {
-				//my url is actually just the IP address of the pfsense box
-				$myurl = substr($addresswithport, 0, $colonpos);
-			} else {
-				$myurl = $addresswithport;
-			}
-			// eval url so that above $myurl item can be processed if need be.
-			$url = str_replace('$myurl', $myurl, $urltmp);
-
-			$tab_array[$tab_level][] = array(
-				$tab['text'],
-				$active,
-				$url
-			);
-		}
-
-		ksort($tab_array);
-		foreach ($tab_array as $tab) {
-			display_top_tabs($tab, $no_drop_down);
-		}
-	}
-?>
 		<div id="mainarea" class="panel panel-default">
 			<table id="mainarea" class="table table-striped table-hover table-condensed">
 				<thead>
@@ -342,7 +339,7 @@ if ($savemsg) {
 						$display_maximum_rows = $field['display_maximum_rows'];
 					}
 				}
-				echo "<tr><td colspan='$colspan' align='center'>";
+				echo "<tr><td colspan='$colspan' class='text-center'>";
 				echo "Filter by: ";
 				$isfirst = true;
 				for ($char = 65; $char < 91; $char++) {
@@ -353,7 +350,7 @@ if ($savemsg) {
 					$isfirst = false;
 				}
 				echo "</td></tr>";
-				echo "<tr><td colspan='$colspan' align='center'>";
+				echo "<tr><td colspan='$colspan' class='text-center'>";
 				if ($field['sortablefields']) {
 					echo "Filter field: <select name='pkg_filter_type'>";
 					foreach ($field['sortablefields']['item'] as $si) {
@@ -398,8 +395,8 @@ if ($savemsg) {
 		echo "<tr><th colspan='" . count($pkg['adddeleteeditpagefields']['columnitem']) . "'>";
 		echo "<table width='100%' summary=''>";
 		echo "<tr>";
-		echo "<td align='left'>Displaying page $page of $totalpages</b></td>";
-		echo "<td align='right'>Rows per page: <select onchange='document.pkgform.submit();' name='display_maximum_rows'>";
+		echo "<td class='text-left'>Displaying page $page of $totalpages</b></td>";
+		echo "<td class='text-right'>Rows per page: <select onchange='document.pkgform.submit();' name='display_maximum_rows'>";
 		for ($x = 0; $x < 250; $x++) {
 			if ($x == $display_maximum_rows) {
 				$SELECTED = "selected";
@@ -522,19 +519,19 @@ if ($savemsg) {
 				} // foreach columnitem
 			} // if columnitem
 ?>
-					<td valign="middle" class="list nowrap">
+					<td valign="middle" class="list text-nowrap">
 						<table border="0" cellspacing="0" cellpadding="1" summary="icons">
 							<tr>
 <?php
 			#Show custom description to edit button if defined
 			$edit_msg=($pkg['adddeleteeditpagefields']['edittext']?$pkg['adddeleteeditpagefields']['edittext']:"Edit this item");
 ?>
-								<td><a class="btn btn-xs btn-info" href="pkg_edit.php?xml=<?=$xml?>&amp;act=edit&amp;id=<?=$i?>"><?=$edit_msg?></a></td>
+								<td><a class="fa fa-pencil" href="pkg_edit.php?xml=<?=$xml?>&amp;act=edit&amp;id=<?=$i?>" title="<?=$edit_msg?>"></a></td>
 <?php
 			#Show custom description to delete button if defined
 			$delete_msg=($pkg['adddeleteeditpagefields']['deletetext']?$pkg['adddeleteeditpagefields']['deletetext']:"Delete this item");
 ?>
-								<td>&nbsp;<a class="btn btn-xs btn-danger" href="pkg.php?xml=<?=$xml?>&amp;act=del&amp;id=<?=$i?>"><?=gettext("Delete")?></a></td>
+								<td>&nbsp;<a class="fa fa-trash" href="pkg.php?xml=<?=$xml?>&amp;act=del&amp;id=<?=$i?>" title="<?=gettext("Delete")?>"></a></td>
 							</tr>
 						</tbody>
 					</table>
@@ -549,7 +546,7 @@ if ($savemsg) {
 					$final_footer = "";
 					$final_footer .= "<tr><td colspan='$colcount'>";
 					$final_footer .= "<table width='100%' summary=''><tr>";
-					$final_footer .= "<td align='left'>";
+					$final_footer .= "<td class='text-left'>";
 					$startingat = $startdisplayingat - $display_maximum_rows;
 					if ($startingat > -1) {
 						$final_footer .= "<a href='pkg.php?xml=" . $_REQUEST['xml'] . "&amp;startdisplayingat={$startingat}&amp;display_maximum_rows={$display_maximum_rows}'>";
@@ -562,10 +559,10 @@ if ($savemsg) {
 					} else {
 						$endingrecord = $tmppp + $display_maximum_rows;
 					}
-					$final_footer .= "</td><td align='center'>";
+					$final_footer .= "</td><td class='text-center'>";
 					$tmppp++;
 					$final_footer .= "<font size='2'>Displaying {$tmppp} - {$endingrecord} / " . count($evaledvar) . " records";
-					$final_footer .= "</font></td><td align='right'>&nbsp;";
+					$final_footer .= "</font></td><td class='text-right'>&nbsp;";
 					if (($i+1) < count($evaledvar)) {
 						$final_footer .= "<a href='pkg.php?xml=" . $_REQUEST['xml'] . "&amp;startdisplayingat=" . ($startdisplayingat + $display_maximum_rows) . "&amp;display_maximum_rows={$display_maximum_rows}'>";
 					}
@@ -589,7 +586,7 @@ if ($savemsg) {
 	#Show custom description to add button if defined
 	$add_msg=($pkg['adddeleteeditpagefields']['addtext']?$pkg['adddeleteeditpagefields']['addtext']:"Add a new item");
 ?>
-								<td><a href="pkg_edit.php?xml=<?=$xml?>&amp;id=<?=$i?>" class="btn btn-sm btn-success"><?=gettext('Add')?></a></td>
+								<td><a href="pkg_edit.php?xml=<?=$xml?>&amp;id=<?=$i?>" class="btn btn-sm btn-success" title="<?=$add_msg?>"><?=gettext('Add')?></a></td>
 <?php
 	#Show description button and info if defined
 	if ($pkg['adddeleteeditpagefields']['description']) {

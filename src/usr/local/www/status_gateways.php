@@ -87,6 +87,9 @@ $tab_array[] = array(gettext("Gateways"), true, "status_gateways.php");
 $tab_array[] = array(gettext("Gateway Groups"), false, "status_gateway_groups.php");
 display_top_tabs($tab_array);
 ?>
+<div class="panel panel-default">
+	<div class="panel-heading"><h2 class="panel-title"><?=gettext('Gateways')?></h2></div>
+	<div class="panel-body">
 
 <div class="table-responsive">
 	<table class="table table-striped table-hover table-condensed sortable-theme-bootstrap" data-sortable>
@@ -106,7 +109,7 @@ display_top_tabs($tab_array);
 ?>
 			<tr>
 				<td>
-					<?=$gateway['name'];?>
+					<?=htmlspecialchars($gateway['name']);?>
 				</td>
 				<td>
 					<?php echo lookup_gateway_ip_by_name($gname);?>
@@ -116,7 +119,7 @@ display_top_tabs($tab_array);
 					if ($gateways_status[$gname]) {
 						echo $gateways_status[$gname]['monitorip'];
 					} else {
-						echo $gateway['monitorip'];
+						echo htmlspecialchars($gateway['monitorip']);
 					}
 ?>
 				</td>
@@ -180,12 +183,15 @@ display_top_tabs($tab_array);
 				</td>
 
 				<td>
-					<?=$gateway['descr']; ?>
+					<?=htmlspecialchars($gateway['descr']); ?>
 				</td>
 			</tr>
 <?php	} ?>	<!-- End-of-foreach -->
 		</tbody>
 	</table>
+</div>
+
+	</div>
 </div>
 
 <?php include("foot.inc"); ?>

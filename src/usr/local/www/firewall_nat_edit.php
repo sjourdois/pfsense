@@ -643,7 +643,6 @@ function dsttype_selected() {
 	return($selected);
 }
 
-$closehead = false;
 $pgtitle = array(gettext("Firewall"), gettext("NAT"), gettext("Port Forward"), gettext("Edit"));
 include("head.inc");
 
@@ -772,8 +771,8 @@ $group->add(new Form_Select(
 $group->add(new Form_Input(
 	'srcbeginport_cust',
 	null,
-	'text',
-	$pconfig['srcbeginport'],
+	'number',
+	is_numeric($pconfig['srcbeginport']) ? $pconfig['srcbeginport'] : null,
 	['min' => '1', 'max' => '65536']
 ))->setHelp('Custom');
 
@@ -787,8 +786,8 @@ $group->add(new Form_Select(
 $group->add(new Form_Input(
 	'srcendport_cust',
 	null,
-	'text',
-	$pconfig['srcendport'],
+	'number',
+	is_numeric($pconfig['srcendport']) ? $pconfig['srcendport'] : null,
 	['min' => '1', 'max' => '65536']
 ))->setHelp('Custom');
 
@@ -835,8 +834,8 @@ $group->add(new Form_Select(
 $group->add(new Form_Input(
 	'dstbeginport_cust',
 	null,
-	'text',
-	$pconfig['dstbeginport'],
+	'number',
+	is_numeric($pconfig['dstbeginport']) ? $pconfig['dstbeginport'] : null,
 	['min' => '1', 'max' => '65536']
 ))->setHelp('Custom');
 
@@ -850,8 +849,8 @@ $group->add(new Form_Select(
 $group->add(new Form_Input(
 	'dstendport_cust',
 	null,
-	'text',
-	$pconfig['dstendport'],
+	'number',
+	is_numeric($pconfig['dstendport']) ? $pconfig['dstendport'] : null,
 	['min' => '1', 'max' => '65536']
 ))->setHelp('Custom');
 
@@ -884,8 +883,8 @@ $group->setHelp('Specify the port on the machine with the IP address entered abo
 $group->add(new Form_Input(
 	'localbeginport_cust',
 	null,
-	'text',
-	$pconfig['localbeginport'],
+	'number',
+	is_numeric($pconfig['localbeginport']) ? $pconfig['localbeginport'] : null,
 	['min' => '1', 'max' => '65536']
 ))->setHelp('Custom');
 
@@ -1061,7 +1060,7 @@ events.push(function() {
 		} else {
 			disableInput('srcbeginport', false);
 			disableInput('srcendport', false);
-			disableInput('localbeginport_cust', false);
+//			disableInput('localbeginport_cust', false);
 			if (dstenabled) {
 				disableInput('dstbeginport', false);
 				disableInput('dstendport', false);

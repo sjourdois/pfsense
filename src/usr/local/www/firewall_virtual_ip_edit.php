@@ -209,6 +209,10 @@ if ($_POST) {
 				$input_errors[] = gettext("You must specify a CARP password that is shared between the two VHID members.");
 			}
 
+			if ($_POST['password'] != $_POST['password_confirm']) {
+				$input_errors[] = gettext("Password and confirm password must match");
+			}
+
 			if ($_POST['interface'] == 'lo0') {
 				$input_errors[] = gettext("For this type of vip localhost is not allowed.");
 			} else if (strpos($_POST['interface'], '_vip')) {
@@ -271,7 +275,12 @@ if ($_POST) {
 			$vipent['uniqid'] = $_POST['uniqid'];
 			$vipent['advskew'] = $_POST['advskew'];
 			$vipent['advbase'] = $_POST['advbase'];
-			$vipent['password'] = $_POST['password'];
+
+			if ($_POST['password'] != DMYPWD) {
+				$vipent['password'] = $_POST['password'];
+			} else {
+				$vipent['password'] = $a_vip[$id]['password'];
+			}
 		}
 
 		/* Common fields */
@@ -419,7 +428,7 @@ $section->addInput(new Form_Checkbox(
 	isset($pconfig['noexpand'])
 ));
 
-$section->addInput(new Form_Input(
+$section->addPassword(new Form_Input(
 	'password',
 	'Virtual IP Password',
 	'password',
@@ -480,9 +489,9 @@ $form->add($section);
 print($form);
 ?>
 
-<div id="infoblock">
+<div class="infoblock">
 	<?=print_info_box(gettext("Proxy ARP and Other type Virtual IPs cannot be bound to by anything running on the firewall, such as IPsec, OpenVPN, etc.  Use a CARP or IP Alias type address for these types.") . '<br />' .
-			   sprintf(gettext("For more information on CARP and the above values, visit the OpenBSD %s"), '<a href="http://www.openbsd.org/faq/pf/carp.html">CARP FAQ</a>.'), info)?>
+			   sprintf(gettext("For more information on CARP and the above values, visit the OpenBSD %s"), '<a href="http://www.openbsd.org/faq/pf/carp.html">CARP FAQ</a>.'), 'info')?>
 </div>
 
 <script type="text/javascript">
@@ -513,6 +522,7 @@ events.push(function() {
 		disableInput('subnet_bits', true);
 		disableInput('type', true);
 		disableInput('password', true);
+		disableInput('password_confirm', true);
 		hideCheckbox('noexpand', true);
 
 		if (mode == 'ipalias') {
@@ -526,6 +536,7 @@ events.push(function() {
 			disableInput('advbase', false);
 			disableInput('advskew', false);
 			disableInput('password', false);
+			disableInput('password_confirm', false);
 			disableInput('subnet_bits', false);
 			$('#type').val('single');
 		} else if (mode == 'proxyarp') {

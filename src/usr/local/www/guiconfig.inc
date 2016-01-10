@@ -330,7 +330,7 @@ function print_info_box_np_undo($msg, $name = "apply", $value = "Apply changes",
 	global $g;
 
 	if (stristr($msg, "apply") != false || stristr($msg, "save") != false || stristr($msg, "create") != false) {
-		$savebutton = "<td class=\"infoboxsave nowrap\">";
+		$savebutton = "<td class=\"infoboxsave text-nowrap\">";
 		$savebutton .= "<input type=\"button\" value=\"". gettext("Undo") . "\" onclick=\"document.location='{$undo}'\" />";
 		$savebutton .= "<input name=\"{$name}\" type=\"submit\" class=\"formbtn\" id=\"${name}\" value=\"{$value}\" />";
 		$savebutton .= "</td>";
@@ -380,7 +380,6 @@ function print_info_box($msg, $class="alert-warning") {
 }
 
 function get_std_save_message($ok) {
-	global $d_sysrebootreqd_path;
 	$filter_related = false;
 	$filter_pages = array("nat", "filter");
 	$to_return = gettext("The changes have been applied successfully.");
@@ -637,7 +636,7 @@ function dump_clog($logfile, $tail, $withorig = true, $grepfor = "", $grepinvert
 			$entry_date_time = htmlspecialchars(join(" ", array_slice($logent, 0, 3)));
 			$entry_text = ($logent[3] == $config['system']['hostname']) ? "" : $logent[3] . " ";
 			$entry_text .= htmlspecialchars($logent[4] . " " . $logent[5]);
-			echo "<td style=\"white-space:nowrap;\">{$entry_date_time}</td>\n";
+			echo "<td class=\"text-nowrap\">{$entry_date_time}</td>\n";
 			echo "<td style=\"word-wrap:break-word; word-break:break-all; white-space:normal\">{$entry_text}</td>\n";
 		} else {
 				echo "<td>" . htmlspecialchars($logent[5]) . "</td>\n";
@@ -1181,6 +1180,24 @@ function get_flash_message() {
 		}
 		unset($_SESSION['flash_messages']);
 	}
+}
+
+/* Retrieve GET or POST Value/State
+ * Eample Usage:
+ * $value = getGETPOSTsettingvalue('get/post parameter name', "");
+ * $value = getGETPOSTsettingvalue('get/post parameter name', null);
+ * $state = getGETPOSTsettingvalue('get/post parameter name', null);
+ * $state = getGETPOSTsettingvalue('get/post parameter name', false);
+ */
+function getGETPOSTsettingvalue($settingname, $default) {
+	$settingvalue = $default;
+	if ($_GET[$settingname]) {
+		$settingvalue = $_GET[$settingname];
+	}
+	if ($_POST[$settingname]) {
+		$settingvalue = $_POST[$settingname];
+	}
+	return $settingvalue;
 }
 
 /* set timezone */

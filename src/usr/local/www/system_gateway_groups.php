@@ -136,8 +136,8 @@ if (is_subsystem_dirty('staticroutes')) {
 
 $tab_array = array();
 $tab_array[] = array(gettext("Gateways"), false, "system_gateways.php");
-$tab_array[] = array(gettext("Routes"), false, "system_routes.php");
-$tab_array[] = array(gettext("Groups"), true, "system_gateway_groups.php");
+$tab_array[] = array(gettext("Static Routes"), false, "system_routes.php");
+$tab_array[] = array(gettext("Gateway Groups"), true, "system_gateway_groups.php");
 display_top_tabs($tab_array);
 ?>
 
@@ -201,10 +201,10 @@ endforeach;
 	</a>
 </nav>
 
-<div id="infoblock">
+<div class="infoblock">
 	<?=print_info_box(gettext('Remember to use these Gateway Groups in firewall rules in order to enable load balancing, failover, ' .
 						   'or policy-based routing.' . '<br />' .
-						   'Without rules directing traffic into the Gateway Groups, they will not be used.'), info)?>
+						   'Without rules directing traffic into the Gateway Groups, they will not be used.'), 'info')?>
 </div>
 <?php
 include("foot.inc");

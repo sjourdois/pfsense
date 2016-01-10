@@ -79,7 +79,7 @@ include("head.inc");
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 	if (DEBUG) {
-	   print_info_box("Not actually rebooting (DEBUG is set true)", success);
+	   print_info_box("Not actually rebooting (DEBUG is set true)", 'success');
 	} else {
 		print('<div><pre>');
 		system_reboot();
@@ -88,7 +88,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
 ?>
 
-<div id="countdown" style="text-align: center;"></div>
+<div id="countdown" class="text-center"></div>
 
 <script type="text/javascript">
 //<![CDATA[

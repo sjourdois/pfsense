@@ -208,7 +208,7 @@ function setMasks() {
 // Complicated function to move all help text associated with this input id to the same id
 // on the row above. That way if you delete the last row, you don't lose the help
 function moveHelpText(id) {
-	$('#' + id).parent('div').parent('div').find('input').each(function() {	 // For each <span></span>
+	$('#' + id).parent('div').parent('div').find('input, select, checkbox').each(function() {	 // For each <span></span>
 		var fromId = this.id;
 		var toId = decrStringInt(fromId);
 		var helpSpan;
@@ -268,7 +268,7 @@ function renumber() {
 			$(this).prop("name", this.name.replace(/\d+$/, "") + idx);
 		});
 
-		$(this).find('label').attr('for', $(this).find('label').attr('for').replace(/\d+$/, "") + idx);
+//		$(this).find('label').attr('for', $(this).find('label').attr('for').replace(/\d+$/, "") + idx);
 
 		idx++;
 	});
@@ -320,7 +320,8 @@ function add_row() {
 	});
 
 	// And for "for" tags
-	$(newGroup).find('label').attr('for', bumpStringInt($(newGroup).find('label').attr('for')));
+//	$(newGroup).find('label').attr('for', bumpStringInt($(newGroup).find('label').attr('for')));
+
 	$(newGroup).find('label').text(""); // Clear the label. We only want it on the very first row
 
 	// Insert the updated/cloned row
@@ -386,19 +387,19 @@ $('[id^=delete]').click(function(event) {
 // "More information" handlers
 
 // If there is an infoblock, automatically add an info icon that toggles its display
-if($('#infoblock').length != 0) {
-	$('#infoblock').before('<i class="fa fa-info-circle icon-pointer" style="color: #337AB7;; font-size:20px; margin-left: 10px; margin-bottom: 10px;" id="showinfo" title="More information"></i>');
+if($('.infoblock,.infoblock_open,#infoblock').length != 0) {
+	$('.infoblock,.infoblock_open,#infoblock').before('<i class="fa fa-info-circle icon-pointer" style="color: #337AB7;; font-size:20px; margin-left: 10px; margin-bottom: 10px;" id="showinfo" title="More information"></i>');
 
 	// and remove the 'X' button from the last text box (Which we assume to be the infoblock)
 	$('.close :last').remove();
 }
 
 // Hide information on page load
-$('#infoblock').hide();
+$('.infoblock,#infoblock').hide();
 
 // Show the help on clicking the info icon
 $('#showinfo').click(function() {
-	$('#infoblock').toggle();
+	$('.infoblock,.infoblock_open,#infoblock').toggle();
 });
 
 // Put a dummy row into any empty table to keep IE happy

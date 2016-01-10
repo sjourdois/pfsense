@@ -1016,8 +1016,6 @@ function build_if_list() {
 $pgtitle = array(gettext("Firewall"), gettext("Rules"), gettext("Edit"));
 $shortcut_section = "firewall";
 
-$closehead = false;
-
 $page_filename = "firewall_rules_edit.php";
 include("head.inc");
 
@@ -1293,7 +1291,7 @@ foreach (['src' => 'Source', 'dst' => 'Destination'] as $type => $name) {
 		$type,
 		$name .' Address',
 		$pconfig[$type]
-	))->addMask($type .'mask', $pconfig[$type.'mask'])->setPattern('[0-9, a-z, A-Z and .');
+	))->addMask($type .'mask', $pconfig[$type.'mask'])->setPattern('[a-zA-Z0-9\_\.\:]+');
 
 	$section->add($group);
 

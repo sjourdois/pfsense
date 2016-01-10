@@ -659,15 +659,39 @@ EOPP;
 			} else {
 				$newzone['domain-name'] = $config['system']['domain'];
 			}
-			$revsubnet = explode(".", $subnet);
-			$revsubnet = array_reverse($revsubnet);
-			foreach ($revsubnet as $octet) {
-				if ($octet != "0") {
+
+			$revsubnet = array_reverse(explode('.',$subnet));
+
+			/* Take care of full classes first */
+			switch ($ifcfgsn) {
+				case 8:
+					$start_octet = 3;
 					break;
-				}
-				array_shift($revsubnet);
+				case 16:
+					$start_octet = 2;
+					break;
+				case 24:
+					$start_octet = 1;
+					break;
+				default:
+					$start_octet = 0;
+					/* Add subnet bitmask to first octet */
+					$revsubnet[0] .= '-' . $ifcfgsn;
+					break;
+
 			}
-			$newzone['ptr-domain'] = implode(".", $revsubnet) . ".in-addr.arpa";
+
+			$ptr_domain = '';
+			for ($octet = 0; $octet <= 3; $octet++) {
+				if ($octet < $start_octet) {
+					continue;
+				}
+				$ptr_domain .= (empty($ptr_domain) ? '' : '.');
+				$ptr_domain .= $revsubnet[$octet];
+			}
+			$ptr_domain .= ".in-addr.arpa";
+			$newzone['ptr-domain'] = $ptr_domain;
+			unset($ptr_domain, $revsubnet, $start_octet);
 		}
 
 		if (is_array($dhcpifconf['dnsserver']) && ($dhcpifconf['dnsserver'][0])) {
@@ -1043,6 +1067,9 @@ EOD;
 		if ($newzone['domain-name']) {
 			if ($need_ddns_updates) {
 				$newzone['dns-servers'] = array($dhcpifconf['ddnsdomainprimary']);
+				$newzone['ddnsdomainkeyname'] = $dhcpifconf['ddnsdomainkeyname'];
+				$newzone['ddnsdomainkey'] = $dhcpifconf['ddnsdomainkey'];
+				$dhcpdconf .= dhcpdkey($dhcpifconf);
 			}
 			$ddns_zones[] = $newzone;
 		}
@@ -1052,8 +1079,7 @@ EOD;
 		$dhcpdconf .= "ddns-update-style interim;\n";
 		$dhcpdconf .= "update-static-leases on;\n";
 
-		$dhcpdconf .= dhcpdkey($dhcpifconf);
-		$dhcpdconf .= dhcpdzones($ddns_zones, $dhcpifconf);
+		$dhcpdconf .= dhcpdzones($ddns_zones);
 	}
 
 	/* write dhcpd.conf */
@@ -1098,7 +1124,7 @@ function dhcpdkey($dhcpifconf) {
 	return $dhcpdconf;
 }
 
-function dhcpdzones($ddns_zones, $dhcpifconf) {
+function dhcpdzones($ddns_zones) {
 	$dhcpdconf = "";
 
 	if (is_array($ddns_zones)) {
@@ -1127,8 +1153,8 @@ function dhcpdzones($ddns_zones, $dhcpifconf) {
 				if (is_ipaddrv4($secondary)) {
 					$dhcpdconf .= "	secondary {$secondary};\n";
 				}
-				if ($dhcpifconf['ddnsdomainkeyname'] <> "" && $dhcpifconf['ddnsdomainkey'] <> "") {
-					$dhcpdconf .= "	key {$dhcpifconf['ddnsdomainkeyname']};\n";
+				if ($zone['ddnsdomainkeyname'] <> "" && $zone['ddnsdomainkey'] <> "") {
+					$dhcpdconf .= "	key {$zone['ddnsdomainkeyname']};\n";
 				}
 				$dhcpdconf .= "}\n";
 				$added_zones[] = $zone['domain-name'];
@@ -1139,8 +1165,8 @@ function dhcpdzones($ddns_zones, $dhcpifconf) {
 				if (is_ipaddrv4($secondary)) {
 					$dhcpdconf .= "	secondary {$secondary};\n";
 				}
-				if ($dhcpifconf['ddnsdomainkeyname'] <> "" && $dhcpifconf['ddnsdomainkey'] <> "") {
-					$dhcpdconf .= "	key {$dhcpifconf['ddnsdomainkeyname']};\n";
+				if ($zone['ddnsdomainkeyname'] <> "" && $zone['ddnsdomainkey'] <> "") {
+					$dhcpdconf .= "	key {$zone['ddnsdomainkeyname']};\n";
 				}
 				$dhcpdconf .= "}\n";
 				$added_zones[] = $zone['ptr-domain'];
@@ -1353,6 +1379,8 @@ EOD;
 			$newzone = array();
 			$newzone['domain-name'] = $dhcpv6ifconf['domain'];
 			$newzone['dns-servers'][] = $dhcpv6ifconf['ddnsdomainprimary'];
+			$newzone['ddnsdomainkeyname'] = $dhcpv6ifconf['ddnsdomainkeyname'];
+			$newzone['ddnsdomainkey'] = $dhcpv6ifconf['ddnsdomainkey'];
 			$ddns_zones[] = $newzone;
 		}
 
@@ -1461,7 +1489,7 @@ EOD;
 
 		if ($dhcpv6ifconf['domain']) {
 			$dhcpdv6conf .= dhcpdkey($dhcpv6ifconf);
-			$dhcpdv6conf .= dhcpdzones($ddns_zones, $dhcpv6ifconf);
+			$dhcpdv6conf .= dhcpdzones($ddns_zones);
 		}
 
 		if ($config['dhcpdv6'][$dhcpv6if]['ramode'] <> "unmanaged" && isset($config['interfaces'][$dhcpv6if]['enable'])) {

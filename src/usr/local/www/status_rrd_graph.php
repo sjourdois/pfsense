@@ -297,9 +297,7 @@ $graph_length = array(
 	"year" => 31622400,
 	"fouryear" => 126230400);
 
-$pgtitle = array(gettext("Status"), gettext("RRD Graphs"));
-
-$closehead = false;
+$pgtitle = array(gettext("Status"), gettext("RRD Graphs"), gettext(ucfirst($curcat)." Graphs"));
 
 /* Load all CP zones */
 if ($captiveportal && is_array($config['captiveportal'])) {
@@ -615,7 +613,7 @@ if ($curcat == 'custom') {
 		$id = preg_replace('/\./', '_', $id);
 ?>
 		<div class="panel panel-default">
-			<img align="center" name="<?=$id?>" id="<?=$id?>" alt="<?=$prettydb?> Graph" src="status_rrd_graph_img.php?start=<?=$start?>&amp;end=<?=$end?>&amp;database=<?=$curdatabase?>&amp;style=<?=$curstyle?>&amp;graph=<?=$graph?>" />
+			<img class="text-center" name="<?=$id?>" id="<?=$id?>" alt="<?=$prettydb?> Graph" src="status_rrd_graph_img.php?start=<?=$start?>&amp;end=<?=$end?>&amp;database=<?=$curdatabase?>&amp;style=<?=$curstyle?>&amp;graph=<?=$graph?>" />
 		</div>
 <?php
 
@@ -692,7 +690,7 @@ if ($curcat == 'custom') {
 				$start = $dates['start'];
 				$end = $dates['end'];
 ?>
-				<div class="panel panel-default" align="center">
+				<div class="panel panel-default text-center">
 					<img name="<?=$id?>" id="<?=$id?>" alt="<?=$prettydb?> Graph" src="status_rrd_graph_img.php?start=<?=$start?>&amp;end=<?=$end?>&amp;database=<?=$curdatabase?>&amp;style=<?=$curstyle?>&amp;graph=<?=$graph?>" />
 				</div>
 <?php
